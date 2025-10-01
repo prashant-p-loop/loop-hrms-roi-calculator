@@ -1,4 +1,6 @@
+import './index.css'
 import React, { useState } from 'react';
+import ReactDOM from 'react-dom/client';
 import { Calculator, TrendingUp, Users, AlertCircle, CheckCircle, FileText, Info } from 'lucide-react';
 
 function ResearchBackedHRMSCalculator() {
@@ -734,4 +736,6 @@ function ResearchBackedHRMSCalculator() {
   );
 }
 
-export default ResearchBackedHRMSCalculator;
+// Render the component
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<ResearchBackedHRMSCalculator />);
