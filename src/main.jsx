@@ -1,4 +1,3 @@
-import './index.css'
 import React, { useState } from 'react';
 import { Calculator, TrendingUp, Users, Clock, AlertCircle, CheckCircle, FileText } from 'lucide-react';
 
@@ -127,7 +126,12 @@ export default function ResearchBackedHRMSCalculator() {
                   src="https://cdn.prod.website-files.com/619b33946e0527b5a12bec15/61f8edaea1ae55f5e0ad7d5a_loop-logo-green.svg" 
                   alt="Loop" 
                   className="h-12 mb-2"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'block';
+                  }}
                 />
+                <div className="text-2xl font-bold hidden" style={{ color: '#36D6C3' }}>Loop</div>
                 <div className="text-sm" style={{ color: '#36D6C3' }}>Powered by Loop</div>
               </div>
             </div>
