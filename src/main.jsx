@@ -296,7 +296,7 @@ function ResearchBackedHRMSCalculator() {
                       style={{
                         width: '100%',
                         padding: '8px 16px',
-                        border: '2px solid #025F4C',
+                        border: '2px solid #36D6C3',
                         borderRadius: '8px',
                         fontSize: '18px',
                         color: '#025F4C',
@@ -307,7 +307,7 @@ function ResearchBackedHRMSCalculator() {
                     <p style={{ 
                       fontSize: '12px', 
                       marginTop: '4px', 
-                      color: '#555',
+                      color: '#666',
                       margin: '4px 0 0 0'
                     }}>{item.description}</p>
                     {item.field === 'hrExecutiveSalary' && (
