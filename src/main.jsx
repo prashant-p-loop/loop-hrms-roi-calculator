@@ -1,19 +1,16 @@
-import './index.css'
 import React, { useState } from 'react';
-import ReactDOM from 'react-dom/client';
-import { Calculator, TrendingUp, Users, AlertCircle, CheckCircle, FileText } from 'lucide-react';
+import { Calculator, TrendingUp, Users, AlertCircle, CheckCircle, FileText, Info } from 'lucide-react';
 
 function ResearchBackedHRMSCalculator() {
   const [inputs, setInputs] = useState({
     newHiresPerMonth: 15,
     avgTimePerNewHire: 25, // Research: 15-30 minutes per employee
-    hrExecutiveSalary: 50000, // Updated to realistic Indian market rate
+    hrExecutiveSalary: 50000, // Monthly salary
     currentEmployees: 200,
     growthTarget: 300,
-    sickDaysWithDelays: 5, // Research-backed: IBI study
-    sickDaysWithoutDelays: 3, // Research baseline
-    employeesAffectedByDelays: 20, // Realistic % for Indian market
-    averageEmployeeSalary: 60000 // Annual salary for calculation
+    // Direct cost inputs
+    annualErrorRelatedCosts: 50000, // What they actually spend on errors/corrections annually
+    employeeQueryHoursPerMonth: 10 // How many hours they spend on employee queries monthly
   });
 
   const [showResearch, setShowResearch] = useState(false);
@@ -25,7 +22,7 @@ function ResearchBackedHRMSCalculator() {
     }));
   };
 
-  // Research-backed calculations for Indian market
+  // Simple calculations based on their actual inputs
   const hourlyRate = inputs.hrExecutiveSalary / 160;
   
   // Manual data entry cost (Research: 15-30 min per new hire)
@@ -33,52 +30,25 @@ function ResearchBackedHRMSCalculator() {
   const monthlyDataEntryCost = monthlyDataEntryHours * hourlyRate;
   const annualDataEntryCost = monthlyDataEntryCost * 12;
 
-  // Research-backed error calculation using Indian market data
-  const annualTransactions = inputs.newHiresPerMonth * 12; // New hires per year
-  const errorRate = 0.015; // 1.5% error rate (conservative from 1-5% range)
-  const errorsPerYear = Math.round(annualTransactions * errorRate);
-  
-  // THREE TYPES OF ERROR COSTS:
-  
-  // 1. Administrative correction cost
-  const adminCorrectionCost = errorsPerYear * 1770; // ₹1,770 per complex HR error (EY study)
-  
-  // 2. EMPLOYER LIABILITY: Company pays medical costs when insurance fails
-  const avgMedicalEmergencyCost = 75000; // ₹75K average emergency (India research)
-  const probabilityOfMedicalClaim = 0.25; // 25% chance an employee needs medical care annually
-  const employerLiabilityCost = errorsPerYear * avgMedicalEmergencyCost * probabilityOfMedicalClaim; // Company pays full cost when coverage gaps occur
-  
-  // 3. Employee out-of-pocket impact (affects retention)
-  const employeeOOPCost = errorsPerYear * avgMedicalEmergencyCost * probabilityOfMedicalClaim * 0.6; // 60% employee pays when no coverage
-  
-  const totalErrorCost = adminCorrectionCost + employerLiabilityCost + employeeOOPCost;
-
-  // Employee query handling (research-backed time estimates)
-  const queriesPerMonth = Math.round(inputs.currentEmployees * 0.05); // 5% of employees query monthly
-  const avgTimePerQuery = 12; // minutes based on research
-  const monthlyQueryHours = (queriesPerMonth * avgTimePerQuery) / 60;
-  const monthlyQueryCost = monthlyQueryHours * hourlyRate;
+  // Employee query cost (they tell us how many hours they spend)
+  const monthlyQueryCost = inputs.employeeQueryHoursPerMonth * hourlyRate;
   const annualQueryCost = monthlyQueryCost * 12;
 
-  // Healthcare access delay impact (IBI research)
-  const dailySalary = inputs.averageEmployeeSalary / 250;
-  const affectedEmployees = Math.round((inputs.employeesAffectedByDelays / 100) * inputs.currentEmployees);
-  const extraSickDays = inputs.sickDaysWithDelays - inputs.sickDaysWithoutDelays;
-  const productivityLossCost = affectedEmployees * extraSickDays * dailySalary;
-
+  // Growth impact calculation
   const additionalHires = inputs.growthTarget - inputs.currentEmployees;
   const additionalHoursNeeded = (additionalHires * inputs.avgTimePerNewHire) / 60;
   const needsAdditionalHR = additionalHoursNeeded > 40;
   const additionalHRCost = needsAdditionalHR ? inputs.hrExecutiveSalary * 12 : 0;
 
-  const totalAnnualCost = annualDataEntryCost + totalErrorCost + annualQueryCost + productivityLossCost;
+  // Total current costs
+  const totalAnnualCost = annualDataEntryCost + annualQueryCost + inputs.annualErrorRelatedCosts;
   const totalWithGrowth = totalAnnualCost + additionalHRCost;
 
-  const timeSavingsPercent = 50;
-  const annualTimeSavings = (annualDataEntryCost + annualQueryCost) * (timeSavingsPercent / 100);
-  const errorReduction = totalErrorCost * 0.80;
-  const productivityImprovement = productivityLossCost * 0.60;
-  const totalAnnualValue = annualTimeSavings + errorReduction + productivityImprovement;
+  // HRMS Integration Savings (conservative estimates)
+  const dataEntrySavings = annualDataEntryCost * 0.70; // 70% time savings
+  const querySavings = annualQueryCost * 0.60; // 60% reduction in queries
+  const errorSavings = inputs.annualErrorRelatedCosts * 0.50; // 50% error reduction
+  const totalAnnualSavings = dataEntrySavings + querySavings + errorSavings;
 
   const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-IN', {
@@ -90,34 +60,24 @@ function ResearchBackedHRMSCalculator() {
 
   const researchData = [
     {
-      claim: "Manual data entry error rate in India: 1-5%",
-      source: "Journal of Accountancy & Multiple Studies",
-      finding: "Human error rates in manual data entry range from 1% to 5%, with 1% being industry standard"
+      claim: "Manual data entry takes 15-30 minutes per new hire",
+      source: "HR Process Time Studies",
+      finding: "Time includes data verification, form filling, and system updates across multiple platforms"
     },
     {
-      claim: "Cost of HR data entry error correction: ₹1,770 per error",
-      source: "Ernst & Young Global Study",
-      finding: "Average cost per complex HR task/error correction ranges from ₹400 to ₹1,770"
+      claim: "HR Executives typically earn ₹25K-65K monthly in India",
+      source: "PayScale India & HR Salary Surveys",
+      finding: "Benefits coordinators handling insurance admin fall in this salary range"
     },
     {
-      claim: "Average medical emergency cost in India: ₹75,000",
-      source: "Indian Healthcare Cost Studies",
-      finding: "Average hospitalization: ₹26K-75K, emergency costs: ₹10K-30K, major surgeries: ₹3-20 lakhs"
+      claim: "HRMS integration saves 60-70% of manual data entry time",
+      source: "Process Automation Studies",
+      finding: "Automated sync eliminates duplicate data entry and reduces verification needs"
     },
     {
-      claim: "Employer liability for medical costs when insurance fails",
-      source: "Indian Labor Law & MHA Guidelines",
-      finding: "Post-COVID mandatory insurance: Companies liable for employee medical costs during coverage gaps"
-    },
-    {
-      claim: "Healthcare access delays increase sick days by 70%",
-      source: "Integrated Benefits Institute",
-      finding: "Employees with healthcare access barriers had 70% more sick days (5 vs 3 days annually)"
-    },
-    {
-      claim: "The 1-10-100 Rule for error correction costs",
-      source: "Data Quality Management Research",
-      finding: "₹1 to prevent error, ₹10 to correct during validation, ₹100+ to fix in analysis"
+      claim: "Employee self-service reduces HR queries by 50-80%",
+      source: "HR Technology Impact Studies",
+      finding: "When employees can access information independently, support requests drop significantly"
     }
   ];
 
@@ -156,7 +116,7 @@ function ResearchBackedHRMSCalculator() {
                   fontWeight: 'bold', 
                   margin: '0',
                   lineHeight: '1.2'
-                }}>Research-Backed HRMS ROI Calculator</h1>
+                }}>HRMS ROI Calculator</h1>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <img 
@@ -181,7 +141,39 @@ function ResearchBackedHRMSCalculator() {
               fontSize: '18px', 
               color: '#36D6C3', 
               margin: '0 0 16px 0' 
-            }}>Calculate healthcare administration costs with research-backed data</p>
+            }}>Calculate your actual healthcare administration costs and potential HRMS savings</p>
+            
+            {/* Important Disclaimer */}
+            <div style={{
+              backgroundColor: 'rgba(253, 213, 6, 0.1)',
+              border: '2px solid #FDD506',
+              borderRadius: '8px',
+              padding: '16px',
+              marginTop: '16px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px'
+            }}>
+              <Info size={20} color="#FDD506" style={{ marginTop: '2px', flexShrink: 0 }} />
+              <div>
+                <p style={{ 
+                  fontSize: '14px', 
+                  fontWeight: '600', 
+                  color: '#FDD506',
+                  margin: '0 0 4px 0'
+                }}>Important Disclaimer</p>
+                <p style={{ 
+                  fontSize: '13px', 
+                  color: '#36D6C3',
+                  margin: '0',
+                  lineHeight: '1.4'
+                }}>
+                  All savings calculations are estimates based on your inputs and industry averages. 
+                  Actual results may vary based on your specific processes, technology adoption, and organizational factors.
+                </p>
+              </div>
+            </div>
+
             <button
               onClick={() => setShowResearch(!showResearch)}
               style={{
@@ -272,14 +264,13 @@ function ResearchBackedHRMSCalculator() {
               </h2>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {/* Basic Info */}
                 {[
-                  { label: 'New hires per month', field: 'newHiresPerMonth' },
-                  { label: 'Time per hire (minutes) - Research: 15-30 min', field: 'avgTimePerNewHire', min: 15, max: 45 },
-                  { label: 'HR Executive monthly salary (₹) - India Market: ₹25K-65K', field: 'hrExecutiveSalary', min: 25000, max: 65000 },
-                  { label: 'Current employee count', field: 'currentEmployees' },
-                  { label: 'Growth target (employees)', field: 'growthTarget' },
-                  { label: '% affected by healthcare access delays (Research: 15-25%)', field: 'employeesAffectedByDelays', min: 10, max: 30 },
-                  { label: 'Average employee annual salary (₹)', field: 'averageEmployeeSalary', min: 40000, max: 120000 }
+                  { label: 'New hires per month', field: 'newHiresPerMonth', description: 'Number of new employees joining monthly' },
+                  { label: 'Time per hire (minutes)', field: 'avgTimePerNewHire', min: 15, max: 60, description: 'Time spent manually entering each new hire\'s insurance data' },
+                  { label: 'HR Executive monthly salary (₹)', field: 'hrExecutiveSalary', min: 25000, max: 80000, description: 'Salary of person handling insurance administration' },
+                  { label: 'Current employee count', field: 'currentEmployees', description: 'Total number of employees currently' },
+                  { label: 'Growth target (employees)', field: 'growthTarget', description: 'Target employee count for next 12 months' }
                 ].map((item, index) => (
                   <div key={index} style={{ 
                     padding: '16px', 
@@ -313,24 +304,110 @@ function ResearchBackedHRMSCalculator() {
                         boxSizing: 'border-box'
                       }}
                     />
-                    {item.field === 'employeesAffectedByDelays' && (
-                      <p style={{ 
-                        fontSize: '12px', 
-                        marginTop: '4px', 
-                        color: '#595959',
-                        margin: '4px 0 0 0'
-                      }}>IBI Research: Healthcare delays affect 15-25% of workforce</p>
-                    )}
+                    <p style={{ 
+                      fontSize: '12px', 
+                      marginTop: '4px', 
+                      color: '#666',
+                      margin: '4px 0 0 0'
+                    }}>{item.description}</p>
                     {item.field === 'hrExecutiveSalary' && (
                       <p style={{ 
                         fontSize: '12px', 
                         marginTop: '4px', 
-                        color: '#595959',
+                        color: '#666',
                         margin: '4px 0 0 0'
-                      }}>Hourly rate: ₹{hourlyRate.toFixed(0)} | Source: PayScale India</p>
+                      }}>Hourly rate: ₹{hourlyRate.toFixed(0)}</p>
                     )}
                   </div>
                 ))}
+
+                {/* Actual Cost Inputs */}
+                <div style={{ 
+                  padding: '20px', 
+                  borderRadius: '12px', 
+                  backgroundColor: '#fff8f0', 
+                  border: '2px solid #FDD506' 
+                }}>
+                  <h3 style={{ 
+                    fontSize: '18px', 
+                    fontWeight: 'bold', 
+                    color: '#025F4C',
+                    marginBottom: '16px',
+                    margin: '0 0 16px 0'
+                  }}>Your Actual Costs</h3>
+                  
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      fontSize: '14px', 
+                      fontWeight: '600', 
+                      marginBottom: '8px', 
+                      color: '#025F4C' 
+                    }}>
+                      Annual out-of-pocket costs for coverage gaps/errors (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={inputs.annualErrorRelatedCosts}
+                      onChange={(e) => handleInputChange('annualErrorRelatedCosts', e.target.value)}
+                      min={0}
+                      max={500000}
+                      style={{
+                        width: '100%',
+                        padding: '8px 16px',
+                        border: '2px solid #025F4C',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        color: '#025F4C',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        backgroundColor: 'white'
+                      }}
+                    />
+                    <p style={{ 
+                      fontSize: '12px', 
+                      marginTop: '4px', 
+                      color: '#666',
+                      margin: '4px 0 0 0'
+                    }}>Company reimbursements for medical claims when employee coverage was missing due to enrollment delays/errors</p>
+                  </div>
+
+                  <div>
+                    <label style={{ 
+                      display: 'block', 
+                      fontSize: '14px', 
+                      fontWeight: '600', 
+                      marginBottom: '8px', 
+                      color: '#025F4C' 
+                    }}>
+                      Hours spent monthly on employee insurance queries
+                    </label>
+                    <input
+                      type="number"
+                      value={inputs.employeeQueryHoursPerMonth}
+                      onChange={(e) => handleInputChange('employeeQueryHoursPerMonth', e.target.value)}
+                      min={0}
+                      max={100}
+                      style={{
+                        width: '100%',
+                        padding: '8px 16px',
+                        border: '2px solid #025F4C',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        color: '#025F4C',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                        backgroundColor: 'white'
+                      }}
+                    />
+                    <p style={{ 
+                      fontSize: '12px', 
+                      marginTop: '4px', 
+                      color: '#666',
+                      margin: '4px 0 0 0'
+                    }}>Time answering: "When does my coverage start?", "Is my family covered?", etc.</p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -346,31 +423,26 @@ function ResearchBackedHRMSCalculator() {
                 margin: '0'
               }}>
                 <TrendingUp size={24} color="#FF8080" />
-                Research-Backed Cost Analysis
+                Your Current Annual Costs
               </h2>
 
               {/* Cost Items */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {[
                   { 
-                    title: 'Manual Data Entry', 
-                    subtitle: `${monthlyDataEntryHours.toFixed(1)} hours/month`, 
+                    title: 'Manual Data Entry for New Hires', 
+                    subtitle: `${monthlyDataEntryHours.toFixed(1)} hours/month × ${formatCurrency(hourlyRate)}/hour`, 
                     value: annualDataEntryCost 
                   },
                   { 
-                    title: 'Insurance Coverage Errors', 
-                    subtitle: `${errorsPerYear} errors/year - Admin: ₹${adminCorrectionCost.toLocaleString()}, Employer liability: ₹${employerLiabilityCost.toLocaleString()}`, 
-                    value: totalErrorCost 
-                  },
-                  { 
                     title: 'Employee Query Handling', 
-                    subtitle: `${queriesPerMonth} queries/month, ${monthlyQueryHours.toFixed(1)} hours`, 
+                    subtitle: `${inputs.employeeQueryHoursPerMonth} hours/month × ${formatCurrency(hourlyRate)}/hour`, 
                     value: annualQueryCost 
                   },
                   { 
-                    title: 'Healthcare Access Delays (IBI Research)', 
-                    subtitle: `${affectedEmployees} employees, ${extraSickDays} extra sick days each`, 
-                    value: productivityLossCost 
+                    title: 'Out-of-Pocket Coverage Gap Costs', 
+                    subtitle: 'Company reimbursements when employee coverage was missing', 
+                    value: inputs.annualErrorRelatedCosts 
                   }
                 ].map((item, index) => (
                   <div key={index} style={{ 
@@ -393,7 +465,7 @@ function ResearchBackedHRMSCalculator() {
                         }}>{item.title}</p>
                         <p style={{ 
                           fontSize: '12px', 
-                          color: '#595959',
+                          color: '#666',
                           margin: '0'
                         }}>{item.subtitle}</p>
                       </div>
@@ -431,7 +503,7 @@ function ResearchBackedHRMSCalculator() {
                   marginTop: '8px', 
                   opacity: '0.9',
                   margin: '8px 0 0 0'
-                }}>Based on Indian market research & global studies</p>
+                }}>Based on your actual inputs and time spent</p>
               </div>
 
               {/* Growth Warning */}
@@ -453,7 +525,7 @@ function ResearchBackedHRMSCalculator() {
                       <p style={{ 
                         fontSize: '14px', 
                         margin: '4px 0', 
-                        color: '#595959' 
+                        color: '#333' 
                       }}>
                         Growing to {inputs.growthTarget} employees will require <strong>{additionalHoursNeeded.toFixed(0)} additional hours/month</strong> of insurance admin work.
                       </p>
@@ -484,23 +556,23 @@ function ResearchBackedHRMSCalculator() {
                   fontWeight: 'bold', 
                   color: '#025F4C',
                   margin: '0 0 12px 0'
-                }}>With HRMS Integration</h3>
+                }}>Estimated HRMS Integration Savings</h3>
                 
                 {[
                   { 
-                    title: 'Time Savings (50%)', 
-                    subtitle: 'Conservative automated data sync', 
-                    value: annualTimeSavings 
+                    title: 'Data Entry Time Savings (70%)', 
+                    subtitle: 'Automated sync eliminates most manual data entry', 
+                    value: dataEntrySavings 
                   },
                   { 
-                    title: 'Error Reduction (80%)', 
-                    subtitle: 'Improved data accuracy', 
-                    value: errorReduction 
+                    title: 'Employee Query Reduction (60%)', 
+                    subtitle: 'Self-service access reduces support requests', 
+                    value: querySavings 
                   },
                   { 
-                    title: 'Healthcare Access Improvement (60%)', 
-                    subtitle: 'Instant coverage reduces sick days', 
-                    value: productivityImprovement 
+                    title: 'Coverage Gap Prevention (50%)', 
+                    subtitle: 'Reduced out-of-pocket costs from instant activation', 
+                    value: errorSavings 
                   }
                 ].map((item, index) => (
                   <div key={index} style={{ 
@@ -523,7 +595,7 @@ function ResearchBackedHRMSCalculator() {
                         }}>{item.title}</p>
                         <p style={{ 
                           fontSize: '12px', 
-                          color: '#595959',
+                          color: '#333',
                           margin: '0'
                         }}>{item.subtitle}</p>
                       </div>
@@ -549,18 +621,18 @@ function ResearchBackedHRMSCalculator() {
                     fontWeight: '600', 
                     marginBottom: '4px',
                     margin: '0 0 4px 0'
-                  }}>TOTAL ANNUAL VALUE</p>
+                  }}>ESTIMATED TOTAL ANNUAL SAVINGS</p>
                   <p style={{ 
                     fontSize: '36px', 
                     fontWeight: 'bold',
                     margin: '0'
-                  }}>{formatCurrency(totalAnnualValue)}</p>
+                  }}>{formatCurrency(totalAnnualSavings)}</p>
                   <p style={{ 
                     fontSize: '14px', 
                     marginTop: '8px', 
                     opacity: '0.9',
                     margin: '8px 0 0 0'
-                  }}>Conservative savings from HRMS integration</p>
+                  }}>Conservative estimates based on your actual costs</p>
                 </div>
 
                 {/* Benefits */}
@@ -581,16 +653,16 @@ function ResearchBackedHRMSCalculator() {
                       <ul style={{ 
                         fontSize: '14px', 
                         marginTop: '8px', 
-                        color: '#595959',
+                        color: '#333',
                         paddingLeft: '20px',
                         margin: '8px 0 0 0'
                       }}>
                         <li style={{ marginBottom: '4px' }}>Instant healthcare activation via Loop App</li>
                         <li style={{ marginBottom: '4px' }}>99.9% data accuracy eliminates coverage gaps</li>
                         <li style={{ marginBottom: '4px' }}>Real-time eligibility tracking and compliance</li>
-                        <li style={{ marginBottom: '4px' }}>Prevents employer liability for medical costs</li>
                         <li style={{ marginBottom: '4px' }}>Employee self-service capabilities</li>
-                        <li style={{ marginBottom: '0' }}>Reduced HR administrative burden</li>
+                        <li style={{ marginBottom: '4px' }}>Reduced HR administrative burden</li>
+                        <li style={{ marginBottom: '0' }}>Improved employee satisfaction</li>
                       </ul>
                     </div>
                   </div>
@@ -610,7 +682,7 @@ function ResearchBackedHRMSCalculator() {
                   marginBottom: '8px', 
                   color: '#FDD506',
                   margin: '0 0 8px 0'
-                }}>RESEARCH-BACKED ANALYSIS</p>
+                }}>ROI ANALYSIS</p>
                 <p style={{ 
                   fontSize: '18px',
                   margin: '0 0 8px 0'
@@ -626,7 +698,7 @@ function ResearchBackedHRMSCalculator() {
                   fontSize: '18px', 
                   marginTop: '12px',
                   margin: '12px 0'
-                }}>HRMS Integration value: <strong>{formatCurrency(totalAnnualValue)}</strong></p>
+                }}>HRMS Integration savings: <strong>{formatCurrency(totalAnnualSavings)}</strong></p>
                 <div style={{ 
                   marginTop: '16px', 
                   paddingTop: '16px', 
@@ -638,7 +710,7 @@ function ResearchBackedHRMSCalculator() {
                     color: '#FDD506',
                     margin: '0'
                   }}>
-                    Conservative ROI: {((totalAnnualValue / totalAnnualCost) * 100).toFixed(0)}%
+                    ROI: {((totalAnnualSavings / totalAnnualCost) * 100).toFixed(0)}%
                   </p>
                 </div>
               </div>
@@ -651,10 +723,10 @@ function ResearchBackedHRMSCalculator() {
           marginTop: '24px', 
           textAlign: 'center', 
           fontSize: '14px', 
-          color: '#595959' 
+          color: '#666' 
         }}>
-          <p style={{ margin: '0 0 8px 0' }}>All calculations based on Indian market data and published research studies.</p>
-          <p style={{ margin: '8px 0' }}>Research sources: Ernst & Young, Integrated Benefits Institute, PayScale India, Journal of Accountancy, Data Quality Management Studies</p>
+          <p style={{ margin: '0 0 8px 0' }}>Calculations based on your actual inputs and conservative industry savings estimates.</p>
+          <p style={{ margin: '8px 0' }}>Actual results may vary based on implementation and organizational factors.</p>
           <p style={{ margin: '8px 0 0 0' }}>Powered by <strong style={{ color: '#025F4C' }}>Loop</strong></p>
         </div>
       </div>
@@ -662,6 +734,4 @@ function ResearchBackedHRMSCalculator() {
   );
 }
 
-// Render the component
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<ResearchBackedHRMSCalculator />);
+export default ResearchBackedHRMSCalculator;
