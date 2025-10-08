@@ -39,8 +39,9 @@ function ResearchBackedHRMSCalculator() {
   // Growth impact calculation
   const additionalHires = inputs.growthTarget - inputs.currentEmployees;
   const additionalHoursNeeded = (additionalHires * inputs.avgTimePerNewHire) / 60;
-  const needsAdditionalHR = additionalHoursNeeded > 40;
-  const additionalHRCost = needsAdditionalHR ? inputs.hrExecutiveSalary * 12 : 0;
+  const additionalMonthlyCost = additionalHoursNeeded * hourlyRate;
+  const additionalHRCost = additionalMonthlyCost * 12;
+  const needsAdditionalHR = additionalHoursNeeded > 0;
 
   // Total current costs
   const totalAnnualCost = annualDataEntryCost + annualQueryCost + inputs.annualErrorRelatedCosts;
@@ -510,35 +511,42 @@ function ResearchBackedHRMSCalculator() {
 
               {/* Growth Warning */}
               {needsAdditionalHR && (
-                <div style={{ 
-                  padding: '16px', 
-                  borderRadius: '8px', 
-                  backgroundColor: '#fffbf0', 
-                  borderLeft: '4px solid #FDD506' 
+                <div style={{
+                  padding: '16px',
+                  borderRadius: '8px',
+                  backgroundColor: '#fffbf0',
+                  borderLeft: '4px solid #FDD506'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                     <AlertCircle size={20} color="#FDD506" style={{ marginTop: '2px' }} />
                     <div>
-                      <p style={{ 
-                        fontWeight: '600', 
+                      <p style={{
+                        fontWeight: '600',
                         color: '#025F4C',
                         margin: '0 0 4px 0'
                       }}>Growth Impact Alert</p>
-                      <p style={{ 
-                        fontSize: '14px', 
-                        margin: '4px 0', 
-                        color: '#333' 
+                      <p style={{
+                        fontSize: '14px',
+                        margin: '4px 0',
+                        color: '#333'
                       }}>
-                        Growing to {inputs.growthTarget} employees will require <strong>{additionalHoursNeeded.toFixed(0)} additional hours/month</strong> of insurance admin work.
+                        Growing from {inputs.currentEmployees} to {inputs.growthTarget} employees means <strong>{additionalHires} additional hires</strong>, requiring <strong>{additionalHoursNeeded.toFixed(1)} additional hours/month</strong> of insurance admin work.
                       </p>
-                      <p style={{ 
-                        fontSize: '18px', 
-                        fontWeight: 'bold', 
-                        marginTop: '8px', 
-                        color: '#FDD506',
-                        margin: '8px 0 0 0'
+                      <p style={{
+                        fontSize: '13px',
+                        margin: '8px 0 4px 0',
+                        color: '#666'
                       }}>
-                        Additional cost: {formatCurrency(additionalHRCost)}/year
+                        {additionalHoursNeeded.toFixed(1)} hours/month × {formatCurrency(hourlyRate)}/hour × 12 months
+                      </p>
+                      <p style={{
+                        fontSize: '18px',
+                        fontWeight: 'bold',
+                        marginTop: '4px',
+                        color: '#FDD506',
+                        margin: '4px 0 0 0'
+                      }}>
+                        Additional annual cost: {formatCurrency(additionalHRCost)}
                       </p>
                     </div>
                   </div>
